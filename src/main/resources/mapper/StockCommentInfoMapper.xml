@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.small.crawler.mapper.StockCommentInfoMapper">
+
+	<sql id="tablename">
+		stock_comment_info
+	</sql>
+	
+	<resultMap id="BaseResultMap" type="com.small.crawler.entity.StockCommentInfo">
+		<result column="id" property="id" jdbcType="INTEGER" />
+		<result column="code" property="code" jdbcType="VARCHAR" />
+		<result column="count" property="count" jdbcType="INTEGER" />
+		<result column="reply_max" property="replyMax" jdbcType="INTEGER" />
+		<result column="reply_all_count" property="replyAllCount" jdbcType="INTEGER" />
+		<result column="fav_max" property="favMax" jdbcType="INTEGER" />
+		<result column="fav_all_count" property="favAllCount" jdbcType="INTEGER" />
+		<result column="current_day_benefit" property="currentDayBenefit" jdbcType="DOUBLE" />
+		<result column="next_day_benefit" property="nextDayBenefit" jdbcType="DOUBLE" />
+		<result column="date" property="date" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="listMatchCode" parameterType="java.util.Map" resultType="java.lang.String">
+		select code from
+		<include refid="tablename" />
+		<where>
+			 date = #{date} and source =#{source} and count >= #{count}
+		</where>
+	</select>
+	
+	<select id="listTopInfo" parameterType="java.util.Map" resultMap="BaseResultMap">
+		select id,code,date from
+		<include refid="tablename" />
+		<where>
+			date = #{date} and source =#{source} and count>=10 ORDER BY count desc limit 200
+		</where>
+	</select>
+	
+	<select id="listMatchInfo" parameterType="java.util.Map" resultMap="BaseResultMap">
+		select  id,code,count,current_day_benefit,next_day_benefit from
+		<include refid="tablename" />
+		<where>
+			date =  #{date} and code not like 'SZ3%' and next_day_benefit != 0 and (current_day_benefit != 0 or next_day_benefit != 0) and count >= 30  ORDER BY count desc  
+		</where>
+	</select>
+	
+	<update id="updateBenefitByDate" parameterType="com.small.crawler.entity.StockCommentInfo">
+		update
+		<include refid="tablename" />
+		<if test="currentDayBenefit != null">
+			set current_day_benefit = #{currentDayBenefit}
+		</if>
+		<if test="nextDayBenefit != null">
+			set next_day_benefit = #{nextDayBenefit}
+		</if>
+		where id = #{id}
+	</update>
+
+	<insert id="insertInfo" useGeneratedKeys="true" keyProperty="id"
+		parameterType="com.small.crawler.entity.StockCommentInfo">
+		insert ignore into
+		<include refid="tablename" />
+		(
+		code,
+		count,
+		reply_max,
+		reply_all_count,
+		fav_max,
+		fav_all_count,
+		date,
+		source
+		)
+		values(
+		#{code},
+		#{count},
+		#{replyMax},
+		#{replyAllCount},
+		#{favMax},
+		#{favAllCount},
+		#{date},
+		#{source}
+		)
+	</insert>
+
+	<insert id="insertInfoByBatch" useGeneratedKeys="true"
+		parameterType="java.util.List">
+		insert ignore into
+		<include refid="tablename" />
+		(
+		code,
+		count,
+		reply_max,
+		reply_all_count,
+		fav_max,
+		fav_all_count,
+		date,
+		source
+		)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(
+			#{item.code},
+			#{item.count},
+			#{item.replyMax},
+			#{item.replyAllCount},
+			#{item.favMax},
+			#{item.favAllCount},
+			#{item.date},
+			#{item.source}
+			)
+		</foreach>
+	</insert>
+
+</mapper>

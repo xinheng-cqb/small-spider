@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.small.crawler.mapper.AreaInfoMapper">
+
+	<sql id="tablename">
+		sales_area_new
+	</sql>
+
+
+	<insert id="insertInfo" useGeneratedKeys="true" keyProperty="id"
+		parameterType="com.small.crawler.entity.AreaInfo">
+		insert ignore into
+		<include refid="tablename" />
+		(
+		id,
+		level,
+		area_value
+		)
+		values(
+		#{id},
+		#{level},
+		#{areaValue}
+		)
+	</insert>
+
+
+</mapper>

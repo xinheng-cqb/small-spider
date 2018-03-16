@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.small.crawler.mapper.StockInfoMapper">
+
+	<sql id="tablename">
+		stock_info
+	</sql>
+
+	<!-- <select id="findCityByName" parameterType="java.lang.String" resultType="com.springboot.learning.entity.City"> 
+		select * from t_city_info <where> <if test="name != null"> name = #{name}; 
+		</if> </where> </select> -->
+
+	<insert id="insertInfo" useGeneratedKeys="true" keyProperty="id"
+		parameterType="com.small.crawler.entity.StockInfo">
+		insert ignore into
+		<include refid="tablename" />
+		(
+		code,
+		turnrate,
+		open,
+		high,
+		low,
+		close,
+		chg,
+		percent,
+		volume,
+		date
+		)
+		values(
+		#{code},
+		#{turnrate},
+		#{open},
+		#{high},
+		#{low},
+		#{close},
+		#{chg},
+		#{percent},
+		#{volume},
+		#{date}
+		)
+	</insert>
+
+	<insert id="insertInfoByBatch" useGeneratedKeys="true"
+		parameterType="java.util.List">
+		insert ignore into
+		<include refid="tablename" />
+		(
+		code,
+		turnrate,
+		open,
+		high,
+		low,
+		close,
+		chg,
+		percent,
+		volume,
+		date
+		)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(
+			#{item.code},
+			#{item.turnrate},
+			#{item.open},
+			#{item.high},
+			#{item.low},
+			#{item.close},
+			#{item.chg},
+			#{item.percent},
+			#{item.volume},
+			#{item.date}
+			)
+		</foreach>
+	</insert>
+
+</mapper>
