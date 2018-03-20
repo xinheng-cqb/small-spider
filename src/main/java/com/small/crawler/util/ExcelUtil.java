@@ -86,14 +86,17 @@ public class ExcelUtil {
 			if (a.equals(b)) {
 				return 0;
 			} else {
-				return a.compareTo(b) < 0 ? 1 : -1;
+				return a.compareTo(b) < 0 ? -1 : 1;
 			}
 		} else {
 			String b_num = CrawlerUtil.matchNumber(b, "");
+			if (b_num == null) {
+				return 1;
+			}
 			if (Integer.parseInt(a_num) == Integer.parseInt(b_num)) {
 				return 0;
 			} else {
-				return Integer.parseInt(a_num) < Integer.parseInt(b_num) ? 1 : -1;
+				return Integer.parseInt(a_num) < Integer.parseInt(b_num) ? -1 : 1;
 			}
 		}
 	}
