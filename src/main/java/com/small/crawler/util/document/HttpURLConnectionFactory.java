@@ -204,7 +204,7 @@ public class HttpURLConnectionFactory {
 			conn = null;
 			return file.getAbsolutePath();
 		} catch (Exception e) {
-			// LOGGER.error("===get document error,request url is  " + crawlParam.getUrlStr(), e);
+			LOGGER.error("===get document error,request url is  " + crawlParam.getUrlStr(), e);
 			return "下载失败";
 		}
 

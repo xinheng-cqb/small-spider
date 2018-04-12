@@ -1,6 +1,8 @@
 package com.small.crawler.util;
 
 import java.text.DateFormat;
+import java.text.MessageFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -124,5 +126,36 @@ public class DateTimeUtil {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatStr);
 		LocalDateTime originDate = LocalDateTime.parse(time, formatter);
 		return originDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+	}
+
+	/**
+	 * @introduce: 根据传进去的日期获取对应所在的周日期范围
+	 * @param timeStr
+	 * @return String
+	 */
+	public static String getWeekByDate(String timeStr) {
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // 设置时间格式
+
+		Calendar cal = Calendar.getInstance();
+		try {
+			Date time = sdf.parse(timeStr);
+			cal.setTime(time);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		// 判断要计算的日期是否是周日，如果是则减一天计算周六的，否则会出问题，计算到下一周去了
+		int dayWeek = cal.get(Calendar.DAY_OF_WEEK);// 获得当前日期是一个星期的第几天
+		if (1 == dayWeek) {
+			cal.add(Calendar.DAY_OF_MONTH, -1);
+		}
+		// System.out.println("要计算日期为:" + sdf.format(cal.getTime())); // 输出要计算日期
+		cal.setFirstDayOfWeek(Calendar.MONDAY);// 设置一个星期的第一天，按中国的习惯一个星期的第一天是星期一
+		int day = cal.get(Calendar.DAY_OF_WEEK);// 获得当前日期是一个星期的第几天
+		cal.add(Calendar.DATE, cal.getFirstDayOfWeek() - day);// 根据日历的规则，给当前日期减去星期几与一个星期第一天的差值
+		String imptimeBegin = sdf.format(cal.getTime());
+		cal.add(Calendar.DATE, 6);
+		String imptimeEnd = sdf.format(cal.getTime());
+		return MessageFormat.format("{0}至{1}", imptimeBegin, imptimeEnd);
 	}
 }

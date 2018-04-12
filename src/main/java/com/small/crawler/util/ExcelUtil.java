@@ -81,6 +81,8 @@ public class ExcelUtil {
 			a = a.substring(a.lastIndexOf("\\"));
 			b = b.substring(b.lastIndexOf("\\"));
 		}
+		a = a.split(".xls")[0];
+		b = b.split(".xls")[0];
 		String a_num = CrawlerUtil.matchNumber(a, "");
 		if (a_num == null) {
 			if (a.equals(b)) {

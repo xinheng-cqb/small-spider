@@ -14,7 +14,9 @@ import java.util.regex.Pattern;
  */
 public class CrawlerUtil {
 	public static void main(String[] args) {
-		System.out.println(matchNumber("{\"firstPeriodTotalAmnt\":\"7457100\"", "firstPeriodTotalAmnt\\\":\\\""));
+		String s = " \\u003Cspan\\u003E\\/ 31\\u9875\\u003C\\/span\\u003E\\n  ".replace(" ", "");
+		System.out.println(s);
+		System.out.println(matchNumber(s, "003E\\/"));
 	}
 
 	/**
