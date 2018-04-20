@@ -21,7 +21,7 @@ public class DateTimeUtil {
 
 	// 测试
 	public static void main(String[] args) {
-		System.out.println(getBeforeTime("yyyy-MM-dd", 1, 3, 1));
+		System.out.println(parseMillis2Time(1523508891000L, "yyyy-MM-dd"));
 	}
 
 	/**

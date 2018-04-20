@@ -106,7 +106,8 @@ public class HttpURLConnectionFactory {
 			} else {
 				conn = (HttpURLConnection) url.openConnection();
 			}
-			conn.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0");
+			conn.addRequestProperty("User-Agent",
+					"Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36");
 			if (crawlParam.getRequestHeadMap() != null) {
 				for (Entry<String, String> entry : crawlParam.getRequestHeadMap().entrySet()) {
 					conn.addRequestProperty(entry.getKey(), entry.getValue());

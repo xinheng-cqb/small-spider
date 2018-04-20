@@ -15,6 +15,11 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 
 import com.small.crawler.util.CrawlerUtil;
 
+/**
+ * @author xinheng-cqb
+ * @date 2018年4月20日
+ * @introduce: 无界浏览器Phantomjs驱动池
+ */
 public class PhantomjsWebDriverPool implements WebDriverPool {
 	private Log logger = LogFactory.getLog(PhantomjsWebDriverPool.class);
 
@@ -49,7 +54,6 @@ public class PhantomjsWebDriverPool implements WebDriverPool {
 		caps.setCapability(PhantomJSDriverService.PHANTOMJS_PAGE_CUSTOMHEADERS_PREFIX + "User-Agent",
 				"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
 		ArrayList<String> cliArgsCap = new ArrayList<String>();
-		// http://phantomjs.org/api/command-line.html
 		cliArgsCap.add("--web-security=false");
 		cliArgsCap.add("--ssl-protocol=any");
 		cliArgsCap.add("--ignore-ssl-errors=true");
