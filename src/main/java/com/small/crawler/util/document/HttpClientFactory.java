@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.Proxy;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -227,7 +226,7 @@ public class HttpClientFactory {
 		return responseBody;
 	}
 
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		Map<String, String> infoMap = new HashMap<String, String>();
 		try {
 			infoMap.put("areaCode", "330100");
@@ -242,7 +241,7 @@ public class HttpClientFactory {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
+	}*/
 
 	/**
 	 * @param url
@@ -337,5 +336,35 @@ public class HttpClientFactory {
 			getMethod.releaseConnection(); // 释放链接
 		}
 		return statusCode;
+	}
+
+	/**
+	 * @introduce: 模拟登陆获取cookie，post请求，没有验证码的情况
+	 * @return
+	 * @return String
+	 */
+	public static String simulateLoginAcquireCookie(String loginUrl, String nameField, String nameValue, String passField, String passValue) {
+		PostMethod postMethod = new PostMethod(loginUrl);
+		NameValuePair[] data = { new NameValuePair(nameField, nameValue), new NameValuePair(passField, passValue) };
+		postMethod.setRequestBody(data);
+		try {
+			int statusCode = hc.executeMethod(postMethod);
+			Cookie[] cookies = hc.getState().getCookies();
+			StringBuffer tmpcookies = new StringBuffer();
+			for (Cookie c : cookies) {
+				tmpcookies.append(c.toString() + ";");
+				System.out.println("cookies = " + c.toString());
+			}
+			if (statusCode == 302) {
+				return tmpcookies.toString();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static void main(String[] args) {
+
 	}
 }

@@ -20,6 +20,8 @@ public class CrawlParam {
 	private int interval;
 	// 随机时间范围 默认0(单位ms)
 	private int intervalRange;
+	// 尝试获取次数，默认为1次
+	private int tryCount = 1;
 	// 请求方式 默认是get请求
 	private String requestMethod = DocumentUtilConstants.GET_METHOD;
 	// post请求参数，get请求时为空，post请求时不能为空
@@ -70,6 +72,14 @@ public class CrawlParam {
 	public CrawlParam setIntervalRange(int intervalRange) {
 		this.intervalRange = RANDOM.nextInt(intervalRange);
 		return this;
+	}
+
+	public int getTryCount() {
+		return tryCount;
+	}
+
+	public void setTryCount(int tryCount) {
+		this.tryCount = tryCount;
 	}
 
 	public String getRequestMethod() {

@@ -1,7 +1,6 @@
 package com.small.crawler.util.document;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.commons.io.FileUtils;
@@ -25,15 +24,19 @@ public class PhantomJsFactory {
 	public static void main(String[] args) {
 		// 测试截屏功能
 		PhantomJSDriver driver = getHeadlessDriver();
-		driver.get("http://www.baidu.com/");
+		driver.get("https://detail.tmall.com/item.htm?spm=a220m.1000858.1000725.5.69482210zyCCSZ&id=563535938284&skuId=3718223375481&areaId=330400&user_id=2254365314&cat_id=50100092&is_b=1&rn=1409941b36646c1cb062cb3a092fd51d");
 		File srcFile = driver.getScreenshotAs(OutputType.FILE);
 		try {
 			FileUtils.copyFile(srcFile, new File("screenshot.png"));
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		driver.quit();
+
+		/*WebDriver driver = debugWebPage();
+		driver.navigate().to("http://www.baidu.com/");
+		System.out.println();*/
 	}
 
 	/**

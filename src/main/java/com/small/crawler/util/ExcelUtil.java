@@ -298,21 +298,82 @@ public class ExcelUtil {
 	}
 
 	/**
-	 * @introduce:合并多个Excel为一个 ,现已经废弃，具体方式没实现了，如有需要，后续补充
+	 * @introduce:合并多个Excel为一个
 	 * @param outputFileName 输出文件（最好带路径）
 	 * @param inputFileNameArray 需要合并的多个文件数组
 	 */
-	@Deprecated
 	public static void mergeExcel(String outputFileName, String... inputFileNameArray) {
+		Workbook workBook = null;
+		if (inputFileNameArray[0].endsWith("xlsx")) {
+			workBook = new XSSFWorkbook();
+		} else if (inputFileNameArray[0].endsWith("xls")) {
+			workBook = new HSSFWorkbook();
+		}
+		// 定义样式
+		CellStyle contentStyle = workBook.createCellStyle();
+		contentStyle.setAlignment(HorizontalAlignment.CENTER);// 左右居中
+		contentStyle.setVerticalAlignment(VerticalAlignment.CENTER);// 垂直居中
+
+		int index = 0;
+		// 生成一个表格
+		for (String inputFileName : inputFileNameArray) {
+			Workbook workBookInput = getWorkBook(inputFileName);
+			for (int sheetNum = 0; sheetNum < workBookInput.getNumberOfSheets(); sheetNum++) {
+				// 获得当前sheet工作表
+				Sheet sheetInput = workBookInput.getSheetAt(sheetNum);
+				String sheetName = sheetInput.getSheetName();
+				if (workBookInput.getNumberOfSheets() == 1) {
+					sheetName = inputFileName.substring(inputFileName.lastIndexOf("\\") + 1);
+				}
+				Sheet sheet = workBook.createSheet();
+				workBook.setSheetName(index, sheetName);
+				copy(sheetInput, sheet);
+				index++;
+			}
+		}
+		try {
+			File file = new File(outputFileName);
+			FileOutputStream fos = new FileOutputStream(file);
+			workBook.write(fos);
+			fos.flush();
+			fos.close();
+			workBook.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 	}
 
+	private static void copy(Sheet formSheet, Sheet toSheet) {
+		// 获得当前sheet的开始行
+		int firstRowNum = formSheet.getFirstRowNum();
+		// 获得当前sheet的结束行
+		int lastRowNum = formSheet.getLastRowNum();
+		// 循环除了第一行的所有行
+		for (int rowNum = firstRowNum; rowNum <= lastRowNum; rowNum++) {
+			// 获得当前行
+			Row row = formSheet.getRow(rowNum);
+			Row toRow = toSheet.createRow(rowNum);
+			if (row == null) {
+				continue;
+			}
+			// 获得当前行的开始列
+			int firstCellNum = row.getFirstCellNum();
+			// 获得当前行的列数
+			int lastCellNum = row.getPhysicalNumberOfCells();
+			// 循环当前行
+			for (int cellNum = firstCellNum; cellNum < lastCellNum; cellNum++) {
+				Cell cell = row.getCell(cellNum);
+				toRow.createCell(cellNum).setCellValue(getCellValue(cell));
+			}
+		}
+	}
+
 	/**
-	 * @introduce: 的获取文件夹下以"。xls" 结尾的所有文件 ，已废弃，还能用
+	 * @introduce: 的获取文件夹下以".xls" 结尾的所有文件 ，
 	 * @param folderPath
 	 * @return List<String>
 	 */
-	@Deprecated
 	public static String[] getSubFileAbsolutePathArray(String folderPath) {
 		List<String> fileList = getSubFileAbsolutePathArray(folderPath, ".xls");
 		return fileList.toArray(new String[fileList.size()]);
