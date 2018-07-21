@@ -22,7 +22,7 @@ public class WebQuickProxy extends ProxyCrawlBase {
 	@Override
 	public void crawlLastesProxyInfo() {
 		for (int i = 1; i < 10; i++) {
-			Document document = HttpURLConnectionFactory.getDocument(new CrawlParam("http://www.kuaidaili.com/free/inha/" + i + "/"));
+			Document document = HttpURLConnectionFactory.getDocument(new CrawlParam("https://www.kuaidaili.com/free/inha/" + i + "/"));
 			if (document == null) {
 				continue;
 			}

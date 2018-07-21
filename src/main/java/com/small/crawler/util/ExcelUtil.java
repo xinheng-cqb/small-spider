@@ -50,7 +50,7 @@ public class ExcelUtil {
 			public int compare(String x, String y) {
 				String[] x_array = x.split("_");
 				String[] y_array = y.split("_");
-				int length = x_array.length > y_array.length ? x_array.length : y_array.length;
+				int length = x_array.length < y_array.length ? x_array.length : y_array.length;
 				for (int i = 0; i < length; i++) {
 					int result = compareValue(x_array[i], y_array[i]);
 					if (result == 0) {

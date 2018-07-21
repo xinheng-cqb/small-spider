@@ -14,9 +14,8 @@ import java.util.regex.Pattern;
  */
 public class CrawlerUtil {
 	public static void main(String[] args) {
-		String s = " \\u003Cspan\\u003E\\/ 31\\u9875\\u003C\\/span\\u003E\\n  ".replace(" ", "");
-		System.out.println(s);
-		System.out.println(matchNumber(s, "003E\\/"));
+		String s = " a56a523a34";
+		System.out.println(matchBetweenString(s, "a", "a3"));
 	}
 
 	/**
@@ -80,16 +79,31 @@ public class CrawlerUtil {
 	}
 
 	/**
-	 * @introduce:匹配数字(包括小数 ,负数)
+	 * @introduce:匹配第一个满足的数字(包括小数 ,负数)
 	 * @param text
 	 * @param charactor
 	 * @return String
 	 */
 	public static String matchNumber(String text, String charactor) {
+		return matchNumber(text, charactor, 0);
+	}
+
+	/**
+	 * @introduce:匹配满足条件的数字(包括小数 ,负数)
+	 * @param text
+	 * @param charactor
+	 * @param index 0是第一个
+	 * @return String
+	 */
+	public static String matchNumber(String text, String charactor, int index) {
 		Pattern pattern = Pattern.compile(charactor + "([-\\d.]+)");
 		Matcher match = pattern.matcher(text);
-		if (match.find()) {
-			return match.group(1);
+		int start = 0;
+		while (match.find()) {
+			if (start == index) {
+				return match.group(1);
+			}
+			start++;
 		}
 		return null;
 	}
@@ -131,6 +145,22 @@ public class CrawlerUtil {
 	 */
 	public static String matchBetweenSymbol(String text, String prefix, String suffix) {
 		Pattern pattern = Pattern.compile(prefix + "([^" + suffix + "]+)");
+		Matcher match = pattern.matcher(text);
+		if (match.find()) {
+			return match.group(1);
+		}
+		return null;
+	}
+
+	/**
+	 * @introduce: 两个字符间的内容，(不包括这两个字符)
+	 * @param text 原文本
+	 * @param prefix 开始字符
+	 * @param suffix 结束字符
+	 * @return String
+	 */
+	public static String matchBetweenString(String text, String prefix, String suffix) {
+		Pattern pattern = Pattern.compile(prefix + "(.*?)" + suffix);
 		Matcher match = pattern.matcher(text);
 		if (match.find()) {
 			return match.group(1);

@@ -18,6 +18,8 @@ public class CrawlParam {
 	private String urlStr;
 	// 间隔时间 单位是毫秒 默认0 控制爬虫访问频率的(单位ms)
 	private int interval;
+	// 实际的随机时间值
+	private int actualRangeValue;
 	// 随机时间范围 默认0(单位ms)
 	private int intervalRange;
 	// 尝试获取次数，默认为1次
@@ -53,6 +55,9 @@ public class CrawlParam {
 
 	public CrawlParam setUrlStr(String urlStr) {
 		this.urlStr = urlStr;
+		if (this.intervalRange > 0) {
+			this.actualRangeValue = RANDOM.nextInt(intervalRange) + 1;
+		}
 		return this;
 	}
 
@@ -65,12 +70,17 @@ public class CrawlParam {
 		return this;
 	}
 
+	public int getActualRangeValue() {
+		return actualRangeValue;
+	}
+
 	public int getIntervalRange() {
 		return intervalRange;
 	}
 
 	public CrawlParam setIntervalRange(int intervalRange) {
-		this.intervalRange = RANDOM.nextInt(intervalRange);
+		this.intervalRange = intervalRange;
+		this.actualRangeValue = RANDOM.nextInt(intervalRange) + 1;
 		return this;
 	}
 
@@ -158,8 +168,11 @@ public class CrawlParam {
 	}
 
 	public CrawlParam setRequestHeadInfo(Map<String, String> infoMap) {
-
-		this.requestHeadMap = infoMap;
+		if (this.requestHeadMap == null) {
+			this.requestHeadMap = infoMap;
+		} else {
+			this.requestHeadMap.putAll(infoMap);
+		}
 		return this;
 	}
 

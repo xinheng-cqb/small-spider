@@ -35,9 +35,9 @@ public class PhantomJsFactory {
 
 	public static void main(String[] args) {
 
-		PhantomJSDriver driver = getHeadlessDriver();
-		driver.manage().window().maximize();
-		// WebDriver driver = debugWebPage();
+		// PhantomJSDriver driver = getHeadlessDriver();
+		// driver.manage().window().maximize();
+		WebDriver driver = debugWebPage();
 		driver.navigate().to("https://login.youzan.com/sso/index?service=kdt");
 		try {
 			TimeUnit.SECONDS.sleep(3);
@@ -50,32 +50,59 @@ public class PhantomJsFactory {
 		pwdElement.sendKeys("password");
 
 		WebElement imageElement = driver.findElement(By.className("captcha-img"));
-		String imagePath = partOfScreenshot(driver, imageElement);
-		// String imagePath = debugPartOfScreenshot(driver, imageElement);
-		System.out.println(imagePath);
-		String result = YunImageIdentify.invoke(imagePath);
-		System.out.println(result);
+		// String imagePath = partOfScreenshot(driver, imageElement);
+		String imagePath = debugPartOfScreenshot(driver, imageElement);
+		// String result = YunImageIdentify.invoke(imagePath);
+		String result = "1234";
 		driver.findElement(By.name("captcha_code")).sendKeys(result);
 
 		WebElement loginButton = driver.findElement(By.xpath("/html/body/div[2]/div/div/div[1]/div/div[1]/div[2]/form/fieldset/div[5]/button"));
 		loginButton.click();
-		try {
-			TimeUnit.SECONDS.sleep(3);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 		String windowHandle = driver.getWindowHandle();
 		driver.switchTo().window(windowHandle);
-		File srcFile = driver.getScreenshotAs(OutputType.FILE);
-		System.out.println(srcFile.getAbsolutePath());
-		driver.findElement(By.xpath("//*[@id=\"js-react-container\"]/div/div[2]/div[2]/div/ul/li[1]/div[1]/span")).click();
 		try {
-			TimeUnit.SECONDS.sleep(2);
+			TimeUnit.SECONDS.sleep(6);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+
+		WebElement cookieElement = null;
+		try {
+			cookieElement = driver.findElement(By.xpath("//*[@id=\"js-react-container\"]/div/div[2]/div[2]/div/ul/li[1]/div[1]/span"));
+		} catch (Exception e1) {
+
+		}
+		int tryCount = 0;
+		while (cookieElement == null && tryCount < 3) {
+			tryCount++;
+			imagePath = debugPartOfScreenshot(driver, imageElement);
+			result = YunImageIdentify.invoke(imagePath);
+			driver.findElement(By.name("captcha_code")).clear();
+			driver.findElement(By.name("captcha_code")).sendKeys(result);
+			loginButton = driver.findElement(By.xpath("/html/body/div[2]/div/div/div[1]/div/div[1]/div[2]/form/fieldset/div[5]/button"));
+			loginButton.click();
+			windowHandle = driver.getWindowHandle();
+			driver.switchTo().window(windowHandle);
+			try {
+				TimeUnit.SECONDS.sleep(6);
+				cookieElement = driver.findElement(By.xpath("//*[@id=\"js-react-container\"]/div/div[2]/div[2]/div/ul/li[1]/div[1]/span"));
+			} catch (InterruptedException e) {
+				cookieElement = null;
+			}
+		}
+		if (cookieElement == null) {
+			driver.quit();
+			return;
+		}
+		cookieElement.click();
 		windowHandle = driver.getWindowHandle();
 		driver.switchTo().window(windowHandle);
+		try {
+
+			TimeUnit.SECONDS.sleep(2);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		StringBuilder sb = new StringBuilder();
 		for (Cookie cookie : driver.manage().getCookies()) {
 			sb.append(MessageFormat.format("{0}={1}; ", cookie.getName(), cookie.getValue()));

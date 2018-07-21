@@ -22,7 +22,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import com.small.crawler.constants.DocumentUtilConstants;
-import com.small.crawler.util.proxy.ProxyUtil;
 
 /**
  * @author caiqibin
@@ -30,6 +29,8 @@ import com.small.crawler.util.proxy.ProxyUtil;
  * @introduce:通过HttpURlConnection方式获取网页，如果要使用代理，建议先根据目标网站链接获取可用的代理。参考ProxyTestClient
  */
 public class HttpURLConnectionFactory {
+	private static final String[] restrictedHeaders = { "Access-Control-Request-Headers", "Access-Control-Request-Method", "Connection",
+			"Content-Length", "Content-Transfer-Encoding", "Expect", "Host", "Keep-Alive", "Origin", "Trailer", "Transfer-Encoding", "Upgrade", "Via" };
 
 	private final static Log LOGGER = LogFactory.getLog(HttpURLConnectionFactory.class);
 
@@ -47,12 +48,13 @@ public class HttpURLConnectionFactory {
 	}
 
 	/**
-	 * @introduce:如果useProxy设置为true，则会使用自带的代理进行爬取（不建议）
+	 * @introduce:如果useProxy设置为true，则会使用自带的代理进行爬取（不建议）,已经改为不使用自带的代理，即使为true
 	 * @param httpCrawlParam
 	 * @return String
 	 */
 	public static String getDocumentStr(CrawlParam crawlParam) {
-		if (!crawlParam.isUseProxy()) {
+		return getDocumentStr(crawlParam, null);
+		/*if (!crawlParam.isUseProxy()) {
 			return getDocumentStr(crawlParam, null);
 		}
 		int tryCount = 0;
@@ -65,7 +67,7 @@ public class HttpURLConnectionFactory {
 		if (documentStr == null) {
 			ProxyUtil.INSTANCE.removeProxy(proxy);
 		}
-		return documentStr;
+		return documentStr;*/
 	}
 
 	public static Document getDocument(CrawlParam crawlParam, String ip, String port) {
@@ -105,19 +107,44 @@ public class HttpURLConnectionFactory {
 	 * @return String
 	 */
 	public static String getDocumentStr(CrawlParam crawlParam, Proxy proxy) {
+		// HttpURLConnection 直接设置Host 头部无效
+		// 参考链接：https://blog.csdn.net/zlfprogram/article/details/79030217
+		// 有没有生效可以通过查看conn 对象的requests属性来验证，如果没生效可以通过在程序入口地点直接放上
+		// System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+		boolean allowRestrictedHeaders = false;
+		if (crawlParam.getRequestHeadMap() != null) {
+			for (Entry<String, String> entry : crawlParam.getRequestHeadMap().entrySet()) {
+				if (!allowRestrictedHeaders) {
+					for (String restrictedHeader : restrictedHeaders) {
+						if (restrictedHeader.equals(entry.getKey())) {
+							allowRestrictedHeaders = true;
+							System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+							break;
+						}
+					}
+				}
+			}
+		}
+		// HTTPS直接使用HOST为ip地址的时候，是无法正确使用SSL校验安全证书的，因为证书和域名绑定。参考链接：https://blog.csdn.net/herotangabc/article/details/41824065
+		/*if (crawlParam.getUrlStr().matches("https://([\\d]+\\.){3}[\\d]+.*")) {
+			HttpsURLConnection.setDefaultHostnameVerifier((String hostname, SSLSession session) -> {
+				return true;
+			});
+		}*/
 		HttpURLConnection conn = null;
 		BufferedReader br = null;
 		int tryNum = 0;
 		while (tryNum < crawlParam.getTryCount()) {
 			tryNum++;
 			try {
-				Thread.sleep(crawlParam.getInterval() + crawlParam.getIntervalRange());
+				Thread.sleep(crawlParam.getInterval() + crawlParam.getActualRangeValue());
 				URL url = new URL(crawlParam.getUrlStr());
 				if (crawlParam.isUseProxy()) {
 					conn = (HttpURLConnection) url.openConnection(proxy);
 				} else {
 					conn = (HttpURLConnection) url.openConnection();
 				}
+
 				conn.addRequestProperty("User-Agent",
 						"Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36");
 				if (crawlParam.getRequestHeadMap() != null) {
@@ -227,5 +254,4 @@ public class HttpURLConnectionFactory {
 			return "下载失败";
 		}
 	}
-
 }

@@ -8,7 +8,7 @@ package com.small.crawler.util.proxy;
 public enum UseableProxyWebsiteEnum {
 
 	SSIP("66IP网", "http://www.66ip.cn/areaindex_11/", new Web66Ip()),
-	QUICKPROXY("快代理", "http://www.kuaidaili.com/free/inha/", new WebQuickProxy()),
+	QUICKPROXY("快代理", "https://www.kuaidaili.com/free/inha/", new WebQuickProxy()),
 	XICIPROXY("西刺代理", "http://www.xicidaili.com/nn/", new WebXiCiProxy());
 	private String name;
 	private String indexUrl;

@@ -61,8 +61,8 @@ public class YunImageIdentify {
 
 	public static String invoke(String imagePath) {
 
-		String username = "name--phonenum";
-		String password = "password--num";
+		String username = "18257344546";
+		String password = "1042030201";
 
 		int appid = 1;
 		String appkey = "22cc5376925e9387a23cf797cb9ba745";
