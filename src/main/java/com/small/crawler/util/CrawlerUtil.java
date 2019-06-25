@@ -14,8 +14,7 @@ import java.util.regex.Pattern;
  */
 public class CrawlerUtil {
 	public static void main(String[] args) {
-		String s = " a56a523a34";
-		System.out.println(matchBetweenString(s, "a", "a3"));
+		System.out.println(formatNumber(1.235, 2));
 	}
 
 	/**
@@ -153,7 +152,7 @@ public class CrawlerUtil {
 	}
 
 	/**
-	 * @introduce: 两个字符间的内容，(不包括这两个字符)
+	 * @introduce: 两个字符间的内容，(不包括这两个字符,且尽可能多的匹配，贪恋匹配)
 	 * @param text 原文本
 	 * @param prefix 开始字符
 	 * @param suffix 结束字符

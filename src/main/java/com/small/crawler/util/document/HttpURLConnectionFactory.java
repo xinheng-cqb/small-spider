@@ -13,7 +13,11 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.logging.Log;
@@ -29,15 +33,18 @@ import com.small.crawler.constants.DocumentUtilConstants;
  * @introduce:通过HttpURlConnection方式获取网页，如果要使用代理，建议先根据目标网站链接获取可用的代理。参考ProxyTestClient
  */
 public class HttpURLConnectionFactory {
-	private static final String[] restrictedHeaders = { "Access-Control-Request-Headers", "Access-Control-Request-Method", "Connection",
-			"Content-Length", "Content-Transfer-Encoding", "Expect", "Host", "Keep-Alive", "Origin", "Trailer", "Transfer-Encoding", "Upgrade", "Via" };
+	// 对https无效
+	/*private static final String[] restrictedHeaders = { "Access-Control-Request-Headers", "Access-Control-Request-Method", "Connection",
+			"Content-Length", "Content-Transfer-Encoding", "Expect", "Host", "Keep-Alive", "Origin", "Trailer", "Transfer-Encoding", "Upgrade", "Via" };*/
 
 	private final static Log LOGGER = LogFactory.getLog(HttpURLConnectionFactory.class);
 
+	public static String cookieStr = "";
+
 	/**
-	 * @introduce:根据网页参数获取页面，如果设置使用代理（useProxy为true），则用自带的代理IP（不建议）
-	 * @param httpCrawlParam
-	 * @return Document
+	 * introduce:根据网页参数获取页面，如果设置使用代理（useProxy为true），则用自带的代理IP（不建议）
+	 * param httpCrawlParam
+	 * return Document
 	 */
 	public static Document getDocument(CrawlParam crawlParam) {
 		String documentStr = getDocumentStr(crawlParam);
@@ -48,9 +55,9 @@ public class HttpURLConnectionFactory {
 	}
 
 	/**
-	 * @introduce:如果useProxy设置为true，则会使用自带的代理进行爬取（不建议）,已经改为不使用自带的代理，即使为true
-	 * @param httpCrawlParam
-	 * @return String
+	 * introduce:如果useProxy设置为true，则会使用自带的代理进行爬取（不建议）,已经改为不使用自带的代理，即使为true
+	 * param httpCrawlParam
+	 * return String
 	 */
 	public static String getDocumentStr(CrawlParam crawlParam) {
 		return getDocumentStr(crawlParam, null);
@@ -104,6 +111,7 @@ public class HttpURLConnectionFactory {
 	 * @introduce:根据网页参数和代理IP获取页面,其中useProxy需设置为true,不然代理不会生效
 	 * @param httpCrawlParam
 	 * @param proxy
+	 * @param connection
 	 * @return String
 	 */
 	public static String getDocumentStr(CrawlParam crawlParam, Proxy proxy) {
@@ -111,7 +119,7 @@ public class HttpURLConnectionFactory {
 		// 参考链接：https://blog.csdn.net/zlfprogram/article/details/79030217
 		// 有没有生效可以通过查看conn 对象的requests属性来验证，如果没生效可以通过在程序入口地点直接放上
 		// System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-		boolean allowRestrictedHeaders = false;
+		/*boolean allowRestrictedHeaders = false;
 		if (crawlParam.getRequestHeadMap() != null) {
 			for (Entry<String, String> entry : crawlParam.getRequestHeadMap().entrySet()) {
 				if (!allowRestrictedHeaders) {
@@ -124,7 +132,7 @@ public class HttpURLConnectionFactory {
 					}
 				}
 			}
-		}
+		}*/
 		// HTTPS直接使用HOST为ip地址的时候，是无法正确使用SSL校验安全证书的，因为证书和域名绑定。参考链接：https://blog.csdn.net/herotangabc/article/details/41824065
 		/*if (crawlParam.getUrlStr().matches("https://([\\d]+\\.){3}[\\d]+.*")) {
 			HttpsURLConnection.setDefaultHostnameVerifier((String hostname, SSLSession session) -> {
@@ -145,18 +153,24 @@ public class HttpURLConnectionFactory {
 					conn = (HttpURLConnection) url.openConnection();
 				}
 
-				conn.addRequestProperty("User-Agent",
-						"Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36");
+				boolean userAgent = false;
 				if (crawlParam.getRequestHeadMap() != null) {
 					for (Entry<String, String> entry : crawlParam.getRequestHeadMap().entrySet()) {
+						if("User-Agent".equals(entry.getKey())){
+							userAgent = true;
+						}
 						conn.addRequestProperty(entry.getKey(), entry.getValue());
 					}
+				}
+				if(!userAgent){
+					conn.addRequestProperty("User-Agent",
+							"Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36");
 				}
 				if (crawlParam.getCookie() != null) {
 					conn.addRequestProperty("Cookie", crawlParam.getCookie());
 				}
-				conn.setConnectTimeout(10000);
-				conn.setReadTimeout(10000);
+				conn.setConnectTimeout(12000);
+				conn.setReadTimeout(12000);
 				if (DocumentUtilConstants.POST_METHOD.equals(crawlParam.getRequestMethod())
 						|| DocumentUtilConstants.PUT_METHOD.equals(crawlParam.getRequestMethod())) {
 					conn.setDoInput(true);
@@ -169,11 +183,41 @@ public class HttpURLConnectionFactory {
 					out.close();
 				}
 
-				if (HttpURLConnection.HTTP_OK != conn.getResponseCode()) {
-					LOGGER.info("=====get document failure ,error code is " + conn.getResponseCode() + " , request url is " + crawlParam.getUrlStr());
-					continue;
+				if (HttpURLConnection.HTTP_MOVED_PERM == conn.getResponseCode() || HttpURLConnection.HTTP_MOVED_TEMP == conn.getResponseCode()) {
+					String redirectUrl = new String(conn.getHeaderField("location").getBytes("ISO-8859-1"), "UTF-8");
+					LOGGER.info("**** Redirection Warning , request url is: " + crawlParam.getUrlStr() + " , redirect url is: " + redirectUrl);
+					// 针对连接重定向到验证码页面的处理，换代理已无用的情形
+					if (redirectUrl == null || redirectUrl.contains("spider")) {
+						return null;
+					}
+					if (!redirectUrl.isEmpty()) {
+						crawlParam.setUrlStr(redirectUrl);
+						return getDocumentStr(crawlParam, proxy);
+					}
 				}
 
+				if (HttpURLConnection.HTTP_OK != conn.getResponseCode()) {
+					LOGGER.info("=====get document failure ,error code is: " + conn.getResponseCode() + " , request url is " + crawlParam.getUrlStr());
+					continue;
+				}
+				// 获取cookie
+				Map<String, List<String>> map = conn.getHeaderFields();
+				Set<String> set = map.keySet();
+				for (Iterator<String> iterator = set.iterator(); iterator.hasNext();) {
+					Object keyObj = iterator.next();
+					if (keyObj == null) {
+						continue;
+					}
+					String key = (String) keyObj;
+					if (key.equals("Set-Cookie")) {
+						List<String> list = map.get(key);
+						StringBuilder builder = new StringBuilder();
+						for (String str : list) {
+							builder.append(str).toString();
+						}
+						cookieStr = builder.toString();
+					}
+				}
 				InputStream inputStream = null;
 				if (crawlParam.isUseGZip()) {
 					inputStream = new GZIPInputStream(conn.getInputStream());
@@ -252,6 +296,22 @@ public class HttpURLConnectionFactory {
 		} catch (Exception e) {
 			LOGGER.error("===get document error,request url is  " + crawlParam.getUrlStr(), e);
 			return "下载失败";
+		}
+	}
+
+	public static void main(String[] args) {
+		CrawlParam param = new CrawlParam();
+		param.setUrlStr("https://weixin.sogou.com/weixin?type=1&s_from=input&query=%E5%A4%9A%E5%AE%9D&ie=utf8&_sug_=n&_sug_type_=");
+		param.setUseProxy(true);
+		Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("85.198.135.180", Integer.parseInt("54630")));
+		String info = null;
+		for (int i = 1; i < 1000; i++) {
+			info = getDocumentStr(param, proxy);
+			if (info.contains("畜牧")) {
+				System.out.println(i);
+			} else {
+				break;
+			}
 		}
 	}
 }

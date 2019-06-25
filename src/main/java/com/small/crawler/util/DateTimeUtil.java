@@ -21,7 +21,8 @@ public class DateTimeUtil {
 
 	// 测试
 	public static void main(String[] args) {
-		System.out.println(parseMillis2Time(1523508891000L, "yyyy-MM-dd"));
+		System.out.println("sddds".replace("s", "a"));
+		System.out.println(getTime("yyyyMMdd", -28));
 	}
 
 	/**

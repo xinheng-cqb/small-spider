@@ -48,6 +48,10 @@ public class ExcelUtil {
 		fileList.sort(new Comparator<String>() {
 			@Override
 			public int compare(String x, String y) {
+				// System.out.println(x + "-----" + y);
+				if ("E:\\工银安盛\\传鑫意\\10岁_女_趸交_55岁领.xls".equals(x) && "E:\\工银安盛\\传鑫意\\10岁_女_20年_70岁领.xls".equals(y)) {
+					System.out.println();
+				}
 				String[] x_array = x.split("_");
 				String[] y_array = y.split("_");
 				int length = x_array.length < y_array.length ? x_array.length : y_array.length;
@@ -70,30 +74,37 @@ public class ExcelUtil {
 			}
 			contentList.addAll(tempList);
 		}
-		if (!inputPath.endsWith("\\")) {
-			inputPath += "\\";
+		if (contentList.size() > 180000) {
+			System.out.println("数据行数超过18万行，合并不了，需要分开合并。");
+			return;
+		}
+		if (!inputPath.endsWith("/")) {
+			inputPath += "/";
 		}
 		exportExcel(MessageFormat.format("{0}{1}.xlsx", inputPath, outFileName), contentList);
 	}
 
 	private static int compareValue(String a, String b) {
-		if (a.contains("\\")) {
-			a = a.substring(a.lastIndexOf("\\"));
-			b = b.substring(b.lastIndexOf("\\"));
+		if (a.contains("/")) {
+			a = a.substring(a.lastIndexOf("/"));
+			b = b.substring(b.lastIndexOf("/"));
 		}
 		a = a.split(".xls")[0];
 		b = b.split(".xls")[0];
 		String a_num = CrawlerUtil.matchNumber(a, "");
-		if (a_num == null) {
+		String b_num = CrawlerUtil.matchNumber(b, "");
+		if (a_num == null && b_num == null) {
 			if (a.equals(b)) {
 				return 0;
 			} else {
 				return a.compareTo(b) < 0 ? -1 : 1;
 			}
 		} else {
-			String b_num = CrawlerUtil.matchNumber(b, "");
+			if (a_num == null) {
+				a_num = "0";
+			}
 			if (b_num == null) {
-				return 1;
+				b_num = "0";
 			}
 			if (Integer.parseInt(a_num) == Integer.parseInt(b_num)) {
 				return 0;

@@ -9,10 +9,16 @@ import com.small.crawler.util.CrawlerUtil;
  */
 public class ProxySpirit {
 
+	public static void main(String[] args) {
+		System.out.println(getUsefulProxy());
+	}
+
 	private static final String ORIGIN_URL = "http://ip.11jsq.com/index.php/api/entry?method=proxyServer.generate_api_url&packid=1&fa=0&qty=1&time=1&port=1&format=txt&ss=1&dt=1";
 
+	private static final String FEE_URL = "http://ip.11jsq.com/index.php/api/entry?method=proxyServer.generate_api_url&packid=0&fa=0&fetch_key=&qty=1&time=1&pro=&city=&port=1&format=txt&ss=1&css=&dt=1&specialTxt=3&specialJson=";
+
 	// 多个ip 请用英文逗号隔开
-	private static final String ADD_WHITE_LIST_URL = "http://http.zhiliandaili.com/Users-whiteIpAddNew.html?appid=416&appkey=598464ef402f438bf0068a8fee668aee&whiteip=";
+	private static final String ADD_WHITE_LIST_URL = "http://http.zhiliandaili.com/Users-whiteIpAdd.html?whiteip=";
 
 	/**
 	 * @introduce: 获取可用的代理，有结果用ip:port形式返回，没有结果返回null
@@ -27,15 +33,17 @@ public class ProxySpirit {
 			return null;
 		}
 		if (documentStr.contains("已用完") || documentStr.contains("有效IP数量不够")) {
-			return null;
+			param.setUrlStr(FEE_URL);
+			documentStr = HttpURLConnectionFactory.getDocumentStr(param);
+			return documentStr;
 		} else if (documentStr.contains("不是白名单IP")) {
 			String ip = CrawlerUtil.matchNumber(documentStr, "\"msg\":\"");
 			param.setUrlStr(ADD_WHITE_LIST_URL + ip);
 			HttpURLConnectionFactory.getDocumentStr(param);
 			return getUsefulProxy();
 		} else if (documentStr.contains("当前用户不允许获取")) {
-			String cookie = HttpClientFactory.simulateLoginAcquireCookie("http://http.zhiliandaili.com/Users-login.html", "username", "data_xinheng",
-					"password", "data410");
+			String cookie = HttpClientFactory.simulateLoginAcquireCookie("http://http.zhiliandaili.com/Users-login.html", "username", "name",
+					"password", "123");
 			if (cookie == null) {
 				return null;
 			}
